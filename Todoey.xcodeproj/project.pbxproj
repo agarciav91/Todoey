@@ -41,7 +41,6 @@
 			isa = PBXGroup;
 			children = (
 				D0C1A7BD2281895D007CBAF9 /* Todoey */,
-				D0C1A7CA2281895F007CBAF9 /* Info.plist */,
 				D0C1A7BC2281895D007CBAF9 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -57,6 +56,7 @@
 		D0C1A7BD2281895D007CBAF9 /* Todoey */ = {
 			isa = PBXGroup;
 			children = (
+				D0C1A7CA2281895F007CBAF9 /* Info.plist */,
 				D0C1A7BE2281895D007CBAF9 /* AppDelegate.swift */,
 				D0C1A7D72281D346007CBAF9 /* Supporting Files */,
 				D0C1A7D62281D302007CBAF9 /* Controller */,

@@ -6,7 +6,7 @@
 //  Copyright © 2019 Andres Garcia Vega. All rights reserved.
 //
 
-class TodoDTO {
+class TodoDTO : Codable {
     var todoItem = ""
     var isChecked = false
 }
