@@ -7,14 +7,16 @@
 //
 
 import UIKit
-import CoreData
+import RealmSwift
 
 class CategoryViewController: UITableViewController {
     
-    var categoryArray : [Category] = [Category]()
+    var categoryArray : Results<Category>?
+    
+    let realm = try! Realm()
     
     // Context for the SQLite DB
-    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+//    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -24,18 +26,18 @@ class CategoryViewController: UITableViewController {
     
     //MARK - TableView Datasource Methods
     
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return categoryArray?.count ?? 1
+    }
+    
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let selectedCategory = categoryArray[indexPath.row]
         let cell = tableView.dequeueReusableCell(withIdentifier: "Categories", for: indexPath)
         
-        cell.textLabel?.text = selectedCategory.name
+        cell.textLabel?.text = categoryArray?[indexPath.row].name ?? "No Categories Added Yet"
         
         return cell
     }
     
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return categoryArray.count
-    }
     
     //MARK - TableView Delegate Methods
     
@@ -47,7 +49,7 @@ class CategoryViewController: UITableViewController {
         let destinationVC = segue.destination as! TodoListViewController
         
         if let indexPath = tableView.indexPathForSelectedRow {
-            destinationVC.selectedCategory = categoryArray[indexPath.row]
+            destinationVC.selectedCategory = categoryArray?[indexPath.row]
         }
     }
     
@@ -58,19 +60,18 @@ class CategoryViewController: UITableViewController {
         
         let alert = UIAlertController(title: "Add New Category", message: "", preferredStyle: .alert)
         
+        let action = UIAlertAction(title: "Add", style: .default) { (action) in
+            if (newCategory.text != "" && newCategory.text != nil) {
+                let category = Category()
+                category.name = newCategory.text!.capitalized
+                
+                self.saveCategories(category)
+            }
+        }
+        
         alert.addTextField { (alertTextField) in
             alertTextField.placeholder = "Create New Category"
             newCategory = alertTextField
-        }
-        
-        let action = UIAlertAction(title: "Add", style: .default) { (action) in
-            if (newCategory.text != "" && newCategory.text != nil) {
-                let category = Category(context: self.context)
-                category.name = newCategory.text!.capitalized
-                self.categoryArray.append(category)
-                
-                self.saveCategories()
-            }
         }
         
         alert.addAction(action)
@@ -79,9 +80,12 @@ class CategoryViewController: UITableViewController {
     
     //MARK - Model Manipulation
     
-    func saveCategories() {
+    func saveCategories(_ category : Category) {
         do {
-            try context.save()
+//            try context.save()
+            try realm.write {
+                realm.add(category)
+            }
         } catch {
             print("Error Saving Data. \(error)")
         }
@@ -89,13 +93,15 @@ class CategoryViewController: UITableViewController {
         self.tableView.reloadData()
     }
     
-    func loadCategories(with request : NSFetchRequest<Category> = Category.fetchRequest()) {
-        do {
-            categoryArray = try context.fetch(request)
-        } catch {
-            print("Error Fetching Data, \(error)")
-        }
+    func loadCategories() {
         
+        categoryArray = realm.objects(Category.self)
+//        do {
+//            categoryArray = try context.fetch(request)
+//        } catch {
+//            print("Error Fetching Data, \(error)")
+//        }
+
         tableView.reloadData()
     }
     
