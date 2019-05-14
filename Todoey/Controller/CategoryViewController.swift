@@ -8,8 +8,9 @@
 
 import UIKit
 import RealmSwift
+import ChameleonFramework
 
-class CategoryViewController: UITableViewController {
+class CategoryViewController: SwipeTableViewController {
     
     var categoryArray : Results<Category>?
     
@@ -22,6 +23,7 @@ class CategoryViewController: UITableViewController {
         super.viewDidLoad()
 
         loadCategories()
+        
     }
     
     //MARK - TableView Datasource Methods
@@ -31,9 +33,18 @@ class CategoryViewController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "Categories", for: indexPath)
         
-        cell.textLabel?.text = categoryArray?[indexPath.row].name ?? "No Categories Added Yet"
+        // Use super to refer to our Superclass
+        let cell = super.tableView(tableView, cellForRowAt: indexPath)
+        
+        if let category = categoryArray?[indexPath.row] {
+            cell.textLabel?.text = category.name
+            
+            guard let categoryColour = UIColor(hexString: category.colorHexValue) else {fatalError()}
+            
+            cell.backgroundColor = categoryColour
+            cell.textLabel?.textColor = ContrastColorOf(categoryColour, returnFlat: true)
+        }
         
         return cell
     }
@@ -64,6 +75,7 @@ class CategoryViewController: UITableViewController {
             if (newCategory.text != "" && newCategory.text != nil) {
                 let category = Category()
                 category.name = newCategory.text!.capitalized
+                category.colorHexValue = RandomFlatColor().hexValue()
                 
                 self.saveCategories(category)
             }
@@ -103,6 +115,23 @@ class CategoryViewController: UITableViewController {
 //        }
 
         tableView.reloadData()
+    }
+    
+    override func updateModel(at indexPath: IndexPath) {
+        
+        // Used to also use the functionality of the super class
+        super.updateModel(at: indexPath)
+        
+        if let item = self.categoryArray?[indexPath.row] {
+            do {
+                try self.realm.write {
+                    // Deletes the specified Item
+                    self.realm.delete(item)
+                }
+            } catch {
+                print("Error Deleting Category, \(error)")
+            }
+        }
     }
     
 }
